@@ -1,75 +1,33 @@
-import pandas as pd
 import re
 
-def arrow_parse(line):
-    if line.startswith('->') and re.search(r'[-+]\d', line):
-        line = line[2:].strip()
-        line = line.split('|')
-        return line
-    else:
-        print("Error: Invalid arrow line format:", line)
+def process_line(line):
+    # Replace special characters with ','
+    line = re.sub(r'[^\w\s.,+-]', ',', line)
+    # Remove unnecessary spaces
+    line = ' '.join(line.split())
+    return line
 
-def header_parse(input_str):
-    # Regular expression pattern to match the desired values
-    pattern = r'\[(\d+)\]\s*\|([-+]?\d+)\|\s*([-+]?\d+)\|\s*([-+]?\d+\.\d+e[-+]?\d+)\|\s*([-+]?\d+\.\d+e[-+]?\d+)\s*,\s*([-+]?\d+\.\d+e[-+]?\d+)\s*,\s*([-+]?\d+\.\d+e[-+]?\d+)\|\s*([-+]?\d+)'
+def remove_extra_commas(lines):
+    cleaned_lines = []
+    for line in lines:
+        if line[:2] == '-,':
+            line = line[2:]
+        parts = line.split(',')
+        cleaned_parts = [part.strip() for part in parts if part.strip()]
+        cleaned_line = ','.join(cleaned_parts)
+        cleaned_lines.append(cleaned_line)
+    return cleaned_lines
 
-    # Using re.search to find the first match
-    match = re.search(pattern, input_str)
+def process_file(input_file, output_file):
+    with open(input_file, 'r') as f:
+        lines = f.readlines()
 
-    # Extracting the values from the match
-    if match:
-        return list(match.groups())
-    else:
-        print("Error: Invalid header line format:", input_str)
-        return []
+    processed_lines = [process_line(line) for line in lines]
+    cleaned_lines = remove_extra_commas(processed_lines)
 
-def read_and_process_file(file_path):
-    # Initialize an empty DataFrame
-    df = pd.DataFrame(columns=['list_header', 'list_arrow'])
+    with open(output_file, 'w') as f:
+        for line in cleaned_lines:
+            f.write(line + '\n')
 
-    with open(file_path, 'r') as file:
-        lines = file.readlines()
-        idx = 0
-        while idx < len(lines):
-            line = lines[idx].strip()
-            print("Processing line:", line)
-            if line.startswith('['):
-                header_list = header_parse(line)
-                if header_list:
-                    print("Header parsed:", header_list)
-                    idx += 1
-                    next_line = lines[idx].strip()
-                    print("Next line:", next_line)
-                    if line.endswith('+2'):
-                        print("Encountered +2 arrow lines.")
-                        arrow_lists = []
-                        for _ in range(2):
-                            
-                            arrow_line = lines[idx].strip()
-                            print("Processing arrow line:", arrow_line)
-                            arrow_list = arrow_parse(arrow_line)
-                            if arrow_list:
-                                arrow_lists.append(arrow_list)
-                            idx += 1
-                        if arrow_lists:
-                            print("Arrow lists parsed:", arrow_lists)
-                            df = df.append({'list_header': header_list, 'list_arrow': arrow_lists}, ignore_index=True)
-                    elif line.endswith('+1'):
-                        print("Encountered +1 arrow line.")
-                        idx += 1
-                        arrow_line = lines[idx].strip()
-                        print("Processing arrow line:", arrow_line)
-                        arrow_list = arrow_parse(arrow_line)
-                        if arrow_list:
-                            print("Arrow list parsed:", arrow_list)
-                            df = df.append({'list_header': header_list, 'list_arrow': [arrow_list]}, ignore_index=True)
-                    else:
-                        print("Error: Invalid arrow line specifier:", next_line)
-            idx += 1
-    return df
-
-# Test the function with a file
-file_path = 'data.txt'  # Provide the path to your text file
-df = read_and_process_file(file_path)
-print("Final DataFrame:")
-print(df)
+# Replace 'data.txt' and 'final_result.txt' with your input and output file paths
+process_file('data.txt', 'final_result.txt')
