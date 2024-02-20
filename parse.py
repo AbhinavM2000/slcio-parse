@@ -32,6 +32,31 @@ def process_file(input_file, output_file):
 # Replace 'data.txt' and 'final_result.txt' with your input and output file paths
 process_file('data.txt', 'final_result.txt')
 
+#print number of lines in final_result.txt
+with open('final_result.txt', 'r') as f:
+    lines = f.readlines()
+    print(len(lines))
+
+import re
+
+with open('final_result.txt', 'r') as f:
+    lines = f.readlines()
+
+with open('final_result.txt', 'w') as f:
+    skip_next = 0
+    for line in lines:
+        if skip_next > 0:
+            skip_next -= 1
+            continue
+        match = re.search(r'\+(\d+)$', line.strip()) # Check if the line ends with '+n'
+        if match:
+            n = int(match.group(1))
+            if n > 2:  # Ensure n is greater than 2
+                skip_next = n
+                continue
+        f.write(line)
+
+
 
 
 #open final_result.txt and if any line ends with +2, duplicate that line below it
@@ -43,7 +68,10 @@ with open('final_result.txt', 'w') as f:
         f.write(line)
         if line.strip().endswith('+2'):
             f.write(line)
-
+#print number of lines in final_result.txt
+with open('final_result.txt', 'r') as f:
+    lines = f.readlines()
+    print(len(lines))
 #open final_result.txt, if any line repeats more than once, swap its position with the line below it
 
 def swap_repeated_lines(file_path):
@@ -68,3 +96,121 @@ def swap_repeated_lines(file_path):
 # Usage example
 file_path = 'final_result.txt'
 swap_repeated_lines(file_path)
+#print number of lines in final_result.txt
+with open('final_result.txt', 'r') as f:
+    lines = f.readlines()
+    print(len(lines))
+
+with open("final_result.txt", "r") as file:
+    lines = file.readlines()
+
+combined_lines = []
+for i in range(0, len(lines), 2):
+    combined_lines.append(lines[i].strip() + "," + lines[i+1].strip())
+
+with open("final_result.txt", "w") as file:
+    file.write("\n".join(combined_lines))
+
+#print number of lines in final_result.txt
+with open('final_result.txt', 'r') as f:
+    lines = f.readlines()
+    print(len(lines))
+#open final_result.txt and load into a pandas dataframe
+import pandas as pd
+
+df = pd.read_csv('final_result.txt', header=None)
+
+ # name the coloumns: id  , cellId0 ,cellId1  , energy      ,   position (x,y,z)        ,  nMCParticles MC contribution: prim. PDG,   energy_part  ,   time,    length  , sec. PDG and stepPosition (x,y,z)
+df.columns = ['id', 'cellId0', 'cellId1', 'energy', 'position x','position y','position z', 'nMCParticles', 'mc contri prim. PDG', 'energy_part', 'time', 'length', 'sec_PDG', 'stepPosition x', 'stepPosition y', 'stepPosition z']
+
+#convert all the columns to the numeric type
+df = df.apply(pd.to_numeric, errors='coerce')
+#plot a histogram of the energy column
+import matplotlib.pyplot as plt
+df['energy'].plot(kind='hist', bins=20)
+#log scale
+plt.yscale('log')
+
+plt.show()
+import numpy as np
+import seaborn as sns
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+
+# Assuming df is your DataFrame containing x, y, z, and energy columns
+
+# Create a 3D plot
+fig = plt.figure(figsize=(10, 8))
+ax = fig.add_subplot(111, projection='3d')
+
+# Extract data
+x = df['position x']
+y = df['position y']
+z = df['position z']
+c = df['energy']
+
+# Scale energy values for better visualization
+c = c.apply(lambda x: 0 if x == 0 else -np.log10(x))
+
+# Use Seaborn for enhanced styling
+sns.set(style="darkgrid")
+
+# Create scatter plot with color mapping
+img = ax.scatter(x, y, z, c=c, cmap='rainbow')
+
+# Add color bar for energy levels
+cbar = fig.colorbar(img)
+cbar.set_label('Energy (log scale)')
+
+# Set labels and title
+ax.set_xlabel('X')
+ax.set_ylabel('Y')
+ax.set_zlabel('Z')
+ax.set_title('ECalBarrelCollection Position vs Energy (Event ID:000/999)')
+
+# Set dark background
+ax.patch.set_facecolor('black')
+
+# Adjust perspective and viewing angle
+ax.view_init(elev=20, azim=120)
+
+# Show plot
+plt.show()
+#repeat for position x, y, z vs time
+# Create a 3D plot
+fig = plt.figure(figsize=(10, 8))
+ax = fig.add_subplot(111, projection='3d')
+
+# Extract data
+x = df['position x']
+y = df['position y']
+z = df['position z']
+c = df['time']
+
+
+# Use Seaborn for enhanced styling
+sns.set(style="darkgrid")
+
+# Create scatter plot with color mapping
+img = ax.scatter(x, y, z, c=c, cmap='rainbow')
+#colorbar values should be from 0 to max value of time
+img.set_clim(df['time'].min(), df['time'].max())
+#print all the negative values of time
+
+
+# Add color bar for time levels
+cbar = fig.colorbar(img)
+cbar.set_label('Time')
+# Set labels and title
+ax.set_xlabel('X')
+ax.set_ylabel('Y')
+ax.set_zlabel('Z')
+ax.set_title('ECalBarrelCollection Position vs Time (Event ID:000/999)')
+# Set dark background
+ax.patch.set_facecolor('black')
+
+# Adjust perspective and viewing angle
+ax.view_init(elev=20, azim=120)
+
+# Show plot
+plt.show()
