@@ -31,3 +31,40 @@ def process_file(input_file, output_file):
 
 # Replace 'data.txt' and 'final_result.txt' with your input and output file paths
 process_file('data.txt', 'final_result.txt')
+
+
+
+#open final_result.txt and if any line ends with +2, duplicate that line below it
+with open('final_result.txt', 'r') as f:
+    lines = f.readlines()
+
+with open('final_result.txt', 'w') as f:
+    for line in lines:
+        f.write(line)
+        if line.strip().endswith('+2'):
+            f.write(line)
+
+#open final_result.txt, if any line repeats more than once, swap its position with the line below it
+
+def swap_repeated_lines(file_path):
+    # Read the contents of the file
+    with open(file_path, 'r') as file:
+        lines = file.readlines()
+
+    # Iterate over the lines
+    prev_line = None
+    for i in range(len(lines)):
+        if prev_line == lines[i]:
+            # Swap current line with the line below it
+            lines[i], lines[i+1] = lines[i+1], lines[i]
+            prev_line = None  # Reset prev_line after swapping
+        else:
+            prev_line = lines[i]
+
+    # Write the modified lines back to the file
+    with open(file_path, 'w') as file:
+        file.writelines(lines)
+
+# Usage example
+file_path = 'final_result.txt'
+swap_repeated_lines(file_path)
