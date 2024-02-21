@@ -38,6 +38,29 @@ with open('final_result.txt', 'r') as f:
     print(len(lines))
 
 import re
+#open final_result.txt and if any line ends with +n, where n greater than 3, calculate sum of all such n = count. Then print % = count / (sum of all n including those less than 3)
+with open('final_result.txt', 'r') as f:
+    lines = f.readlines()
+
+sum_n = 0
+count = 0
+for line in lines:
+    match = re.search(r'\+(\d+)$', line.strip()) # Check if the line ends with '+n'
+    if match:
+        n = int(match.group(1))
+        if n > 3:  # Ensure n is greater than 3
+            sum_n += n
+            count += 1
+
+total_sum = sum_n
+for line in lines:
+    match = re.search(r'\+(\d+)$', line.strip()) # Check if the line ends with '+n'
+    if match:
+        n = int(match.group(1))
+        total_sum += n
+
+percentage = (count / total_sum) * 100
+print(f"{percentage:.2f}% of points(+4 and above decays) excluded due to difficulties in parsing.")
 
 with open('final_result.txt', 'r') as f:
     lines = f.readlines()
@@ -51,7 +74,7 @@ with open('final_result.txt', 'w') as f:
         match = re.search(r'\+(\d+)$', line.strip()) # Check if the line ends with '+n'
         if match:
             n = int(match.group(1))
-            if n > 2:  # Ensure n is greater than 2
+            if n > 3:  # Ensure n is greater than 2
                 skip_next = n
                 continue
         f.write(line)
@@ -100,6 +123,40 @@ swap_repeated_lines(file_path)
 with open('final_result.txt', 'r') as f:
     lines = f.readlines()
     print(len(lines))
+
+
+# Duplicate lines ending with +3 two times below them
+with open('final_result.txt', 'r') as f:
+    lines = f.readlines()
+
+with open('final_result_modified.txt', 'w') as f:
+    for line in lines:
+        f.write(line)
+        if line.strip().endswith('+3'):
+            f.write(line)
+            f.write(line)
+
+# Swap lines i+1 and i+4 if line i ends with +3 and start scanning from i+6
+with open('final_result_modified.txt', 'r') as f:
+    lines = f.readlines()
+
+with open('final_result_final.txt', 'w') as f:
+    skip_next = 0
+    for i in range(len(lines)):
+        if skip_next > 0:
+            skip_next -= 1
+            continue
+        f.write(lines[i])
+        if lines[i].strip().endswith('+3'):
+            if i + 4 < len(lines):  # Make sure there are enough lines to swap
+                lines[i+1], lines[i+4] = lines[i+4], lines[i+1]
+                skip_next = 5
+            else:
+                f.write("Error: Not enough lines to perform swap.\n")
+
+
+
+
 
 with open("final_result.txt", "r") as file:
     lines = file.readlines()
