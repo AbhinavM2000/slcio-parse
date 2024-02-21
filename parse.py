@@ -1,5 +1,6 @@
 import re
 
+######---START PARSING----#####
 
 def process_line(line):
     # Replace special characters with ','
@@ -177,8 +178,7 @@ with open("final_result.txt", "r") as f:
     lines = f.readlines()
     print(len(lines))
     
-    
-    
+######---DONE PARSING----#####
     
 ########---PANDS----##########
     
@@ -213,12 +213,7 @@ df = df.apply(pd.to_numeric, errors="coerce")
 
 
 
-
-
-
 #########---PLOT TEST----#########
-
-
 
 
 # plot a histogram of the energy column
