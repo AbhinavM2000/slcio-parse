@@ -1,4 +1,10 @@
 import re
+import numpy as np
+import pandas as pd
+import plotly.graph_objs as go
+import plotly.graph_objects as go
+
+
 
 def process_line(line):
     # Replace special characters with ','
@@ -183,105 +189,139 @@ df.columns = ['id', 'cellId0', 'cellId1', 'energy', 'position x','position y','p
 #convert all the columns to the numeric type
 df = df.apply(pd.to_numeric, errors='coerce')
 #plot a histogram of the energy column
-import matplotlib.pyplot as plt
-df['energy'].plot(kind='hist', bins=20)
-#log scale
-plt.yscale('log')
+import plotly.graph_objs as go
 
-plt.show()
-import numpy as np
-import seaborn as sns
-import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
+# Create histogram trace
+import plotly.graph_objects as go
 
-# Assuming df is your DataFrame containing x, y, z, and energy columns
+# Create histogram trace
+histogram = go.Histogram(
+    x=df['energy'],
+    nbinsx=20,
+    marker=dict(color='royalblue')
+)
 
-# Create a 3D plot
-fig = plt.figure(figsize=(10, 8))
-ax = fig.add_subplot(111, projection='3d')
+# Create layout
+layout = go.Layout(
+    title='Energy Distribution ECalBarrelCollection (Event ID:000/999)',
+    xaxis=dict(title='Energy', color='white'),
+    yaxis=dict(title='Count (log scale)', type='log', color='white'),
+    bargap=0.05,
+    bargroupgap=0.1,
+    plot_bgcolor='rgb(51, 51, 51)',
+    paper_bgcolor='rgb(51, 51, 51)',
+    font=dict(color='white'),
+    autosize=True,
+)
 
-# Extract data
-x = df['position x']
-y = df['position y']
-z = df['position z']
-c = df['energy']
+# Create figure
+fig = go.Figure(data=[histogram], layout=layout)
+
+# Update color for dark theme
+fig.update_layout(
+    xaxis=dict(linecolor='white'),
+    yaxis=dict(linecolor='white'),
+    bargap=0.05,
+    bargroupgap=0.1,
+    plot_bgcolor='rgb(51, 51, 51)',
+    paper_bgcolor='rgb(51, 51, 51)',
+    font=dict(color='white')
+)
+
+# Show plot
+#fig.show()
+
+
+
+import plotly.graph_objs as go
 
 # Scale energy values for better visualization
-c = c.apply(lambda x: 0 if x == 0 else -np.log10(x))
+df['scaled_energy'] = df['energy'].apply(lambda x: 0 if x == 0 else -np.log10(x))
 
-# Use Seaborn for enhanced styling
-sns.set(style="darkgrid")
+# Create scatter plot trace
+scatter = go.Scatter3d(
+    x=df['position x'],
+    y=df['position y'],
+    z=df['position z'],
+    mode='markers',
+    marker=dict(
+        size=5,
+        color=df['scaled_energy'],
+        colorscale='Rainbow',
+        colorbar=dict(title='Energy (log scale)'),
+        line=dict(color='white', width=0),
+        opacity=0.8
+    )
+)
 
-# Create scatter plot with color mapping
-img = ax.scatter(x, y, z, c=c, cmap='rainbow')
+# Create layout
+layout = go.Layout(
+    title='ECalBarrelCollection Position vs Energy (Event ID:000/999)',
+    scene=dict(
+        xaxis=dict(showbackground=False, showline=True, linecolor='white', title='X', showgrid=False, showticklabels=True),
+        yaxis=dict(showbackground=False, showline=True, linecolor='white', title='Y', showgrid=False, showticklabels=True),
+        zaxis=dict(showbackground=False, showline=True, linecolor='white', title='Z', showgrid=False, showticklabels=True),
+        bgcolor='black'
+    ),
+    margin=dict(l=0, r=0, b=0, t=40),
+    paper_bgcolor='black',
+    font=dict(color='white')
+)
 
-# Add color bar for energy levels
-cbar = fig.colorbar(img)
-cbar.set_label('Energy (log scale)')
-
-# Set labels and title
-ax.set_xlabel('X')
-ax.set_ylabel('Y')
-ax.set_zlabel('Z')
-ax.set_title('ECalBarrelCollection Position vs Energy (Event ID:000/999)')
-
-# Set dark background
-ax.patch.set_facecolor('black')
-
-# Adjust perspective and viewing angle
-ax.view_init(elev=20, azim=120)
-
-# Show plot
-plt.show()
-#repeat for position x, y, z vs time
-# Create a 3D plot
-fig = plt.figure(figsize=(10, 8))
-ax = fig.add_subplot(111, projection='3d')
-
-# Extract data
-x = df['position x']
-y = df['position y']
-z = df['position z']
-c = df['time']
-
-
-# Use Seaborn for enhanced styling
-sns.set(style="darkgrid")
-
-# Create scatter plot with color mapping
-img = ax.scatter(x, y, z, c=c, cmap='rainbow')
-#colorbar values should be from 0 to max value of time
-img.set_clim(df['time'].min(), df['time'].max())
-#print all the negative values of time
-
-
-# Add color bar for time levels
-cbar = fig.colorbar(img)
-cbar.set_label('Time')
-# Set labels and title
-ax.set_xlabel('X')
-ax.set_ylabel('Y')
-ax.set_zlabel('Z')
-ax.set_title('ECalBarrelCollection Position vs Time (Event ID:000/999)')
-# Set dark background
-ax.patch.set_facecolor('black')
-
-# Adjust perspective and viewing angle
-ax.view_init(elev=20, azim=120)
+# Create figure
+fig = go.Figure(data=[scatter], layout=layout)
 
 # Show plot
-plt.show()
+#fig.show()
+
+
+# For the second part:
+
+# Create scatter plot trace
+scatter = go.Scatter3d(
+    x=df['position x'],
+    y=df['position y'],
+    z=df['position z'],
+    mode='markers',
+    marker=dict(
+        size=5,
+        color=df['time'],
+        colorscale='Rainbow',
+        colorbar=dict(title='Time'),
+        line=dict(color='white', width=0),
+        opacity=0.8
+    )
+)
+
+# Create layout
+layout = go.Layout(
+    title='ECalBarrelCollection Position vs Time (Event ID:000/999)',
+    scene=dict(
+        xaxis=dict(showbackground=False, showline=True, linecolor='white', title='X', showgrid=False, showticklabels=True),
+        yaxis=dict(showbackground=False, showline=True, linecolor='white', title='Y', showgrid=False, showticklabels=True),
+        zaxis=dict(showbackground=False, showline=True, linecolor='white', title='Z', showgrid=False, showticklabels=True),
+        bgcolor='black'
+    ),
+    margin=dict(l=0, r=0, b=0, t=40),
+    paper_bgcolor='black',
+    font=dict(color='white')
+)
+
+# Create figure
+fig = go.Figure(data=[scatter], layout=layout)
+
+# Show plot
+fig.show()
+
+
 
 
 ###---UNROLL CYLINDER INTO RECTANGLE (TESTING)---###
 
-import pandas as pd
-import matplotlib.pyplot as plt
-import seaborn as sns
 import numpy as np
+import plotly.graph_objs as go
 
 # Assuming you have already loaded your data into a DataFrame called df
-
 # Extract data
 x = df['position x']
 y = df['position y']
@@ -289,30 +329,152 @@ z = df['position z']
 c = df['time']
 
 # Convert cylindrical coordinates to rectangular coordinates
-# Assuming the cylinder is oriented along the z-axis
-# The radius of the cylinder is assumed to be 1 (you can adjust this if needed)
-x_rect = x * np.cos(y)  # x_rect = r * cos(theta)
-y_rect = x * np.sin(y)  # y_rect = r * sin(theta)
 
-# Create a 2D scatter plot
-plt.figure(figsize=(10, 8))
 
-# Use Seaborn for enhanced styling
-sns.set(style="darkgrid")
+#print points with lowest z coordinate value
+min_z = df[df['position z'] == df['position z'].min()]
+O=[0,0,min_z['position z'].values[0]]
+A=[min_z['position x'].values[0],min_z['position y'].values[0],min_z['position z'].values[0]]
+#print O and A
+print(f"O: {O}")
+print(f"A: {A}")
+#find angle between OA and every other point, check cross product of OA and OB, if positive angle = angle otherwise angle = -angle
+def angle_between_points(O, A, B):
+    # Calculate vectors OA and OB
+    OA = np.array(A) - np.array(O)
+    OB = np.array(B) - np.array(O)
+    # Calculate angle between OA and OB
+    angle = np.arccos(np.dot(OA, OB) / (np.linalg.norm(OA) * np.linalg.norm(OB)))
+    # Calculate cross product of OA and OB
+    cross_product = np.cross(OA, OB)
+    #radius ob norm
+    # If cross product is positive, angle is positive, otherwise negative
+    if cross_product[2] > 0:
+        return angle
+    else:
+        return -angle
+# iterate over all the points and calculate the angle between OA and OB, if B=0, then skip
+angles = []
+zvalues = []
+for i in range(len(df)):
+    B = [df['position x'].iloc[i], df['position y'].iloc[i], -2203.0]
+    if (B==O):
+        print(f"O: {O}")
+        continue
+    angles.append(angle_between_points(O, A, B))
+    zvalues.append(df['position z'].iloc[i])
+# For the z-coordinate, it remains the same as the z of the cylinder
+z_rect = z
+# Create scatter plot trace
+scatter = go.Scatter(
+    x=angles,
+    y=z_rect,
+    mode='markers',
+    marker=dict(
+        size=8,
+        color=c,
+        colorscale='Rainbow',
+        colorbar=dict(title='Time'),
+        opacity=0.8
+    )
+)
+# Create layout
+layout = go.Layout(
+    title='ECalBarrelCollection Position vs Time (Event ID:000/999)',
+    xaxis=dict(title='Theta (degrees)'),
+    yaxis=dict(title='Z'),
+    plot_bgcolor='black',
+    paper_bgcolor='black',
+    font=dict(color='white')
+)
 
-# Create scatter plot with color mapping
-img = plt.scatter(x_rect, z, c=c, cmap='rainbow')
-# Colorbar values should be from 0 to max value of time
-img.set_clim(df['time'].min(), df['time'].max())
-
-# Add color bar for time levels
-cbar = plt.colorbar(img)
-cbar.set_label('Time')
-
-# Set labels and title
-plt.xlabel('X')
-plt.ylabel('Z')
-plt.title('ECalBarrelCollection Position vs Time (Event ID:000/999)')
+# Create figure
+fig = go.Figure(data=[scatter], layout=layout)
 
 # Show plot
-plt.show()
+fig.show()
+
+
+
+# Scale energy values for better visualization
+df['scaled_energy'] = df['energy'].apply(lambda x: 0 if x == 0 else -np.log10(x))
+
+# Create scatter plot trace
+scatter = go.Scatter3d(
+    x=df['position x'],
+    y=df['position y'],
+    z=df['position z'],
+    mode='markers',
+    marker=dict(
+        size=5,
+        color=df['scaled_energy'],
+        colorscale='Rainbow',
+        colorbar=dict(title='Energy (log scale)'),
+        line=dict(color='white', width=0),
+        opacity=0.8
+    )
+)
+
+# Create layout
+layout = go.Layout(
+    title='ECalBarrelCollection Position vs Energy (Event ID:000/999)',
+    scene=dict(
+        xaxis=dict(showbackground=False, showline=True, linecolor='white', title='X', showgrid=False, showticklabels=True),
+        yaxis=dict(showbackground=False, showline=True, linecolor='white', title='Y', showgrid=False, showticklabels=True),
+        zaxis=dict(showbackground=False, showline=True, linecolor='white', title='Z', showgrid=False, showticklabels=True),
+        bgcolor='black'
+    ),
+    margin=dict(l=0, r=0, b=0, t=40),
+    paper_bgcolor='black',
+    font=dict(color='white')
+)
+
+# Create figure
+fig = go.Figure(data=[scatter], layout=layout)
+
+# Show plot
+#fig.show()
+
+
+# calclate radius
+r = np.sqrt(df['position x']**2 + df['position y']**2)
+
+# Create scatter plot trace
+scatter = go.Scatter3d(
+    x=np.cos(angles)*r[0],
+    y=np.sin(angles)*r[0],
+    z=df['position z'],
+    mode='markers',
+    marker=dict(
+        size=5,
+        color=df['time'],
+        colorscale='Rainbow',
+        colorbar=dict(title='Time'),
+        line=dict(color='white', width=0),
+        opacity=0.8
+    )
+)
+
+# Create layout
+layout = go.Layout(
+    title='ECalBarrelCollection Position vs Time (Event ID:000/999)',
+    scene=dict(
+        xaxis=dict(showbackground=False, showline=True, linecolor='white', title='X', showgrid=False, showticklabels=True),
+        yaxis=dict(showbackground=False, showline=True, linecolor='white', title='Y', showgrid=False, showticklabels=True),
+        zaxis=dict(showbackground=False, showline=True, linecolor='white', title='Z', showgrid=False, showticklabels=True),
+        bgcolor='black'
+    ),
+    margin=dict(l=0, r=0, b=0, t=40),
+    paper_bgcolor='black',
+    font=dict(color='white')
+)
+
+# Create figure
+fig = go.Figure(data=[scatter], layout=layout)
+
+# Show plot
+fig.show()
+
+
+
+
