@@ -193,43 +193,50 @@ import plotly.graph_objs as go
 # Create histogram trace
 import plotly.graph_objects as go
 
-# Create histogram trace
-histogram = go.Histogram(
-    x=df['energy'],
-    nbinsx=20,
-    marker=dict(color='royalblue')
-)
+import plotly.graph_objs as go
 
-# Create layout
-layout = go.Layout(
-    title='Energy Distribution ECalBarrelCollection (Event ID:000/999)',
-    xaxis=dict(title='Energy', color='white'),
-    yaxis=dict(title='Count (log scale)', type='log', color='white'),
-    bargap=0.05,
-    bargroupgap=0.1,
-    plot_bgcolor='rgb(51, 51, 51)',
-    paper_bgcolor='rgb(51, 51, 51)',
-    font=dict(color='white'),
-    autosize=True,
-)
+def plot_histogram(data, x_label='Energy', y_label='Count (log scale)', nbins=20, color='royalblue', title='Energy Distribution', plot_bgcolor='rgb(51, 51, 51)', paper_bgcolor='rgb(51, 51, 51)', font_color='white'):
+    # Create histogram trace
+    histogram = go.Histogram(
+        x=data,
+        nbinsx=nbins,
+        marker=dict(color=color)
+    )
 
-# Create figure
-fig = go.Figure(data=[histogram], layout=layout)
+    # Create layout
+    layout = go.Layout(
+        title=title,
+        xaxis=dict(title=x_label, color=font_color),
+        yaxis=dict(title=y_label, type='log', color=font_color),
+        bargap=0.05,
+        bargroupgap=0.1,
+        plot_bgcolor=plot_bgcolor,
+        paper_bgcolor=paper_bgcolor,
+        font=dict(color=font_color),
+        autosize=True,
+    )
 
-# Update color for dark theme
-fig.update_layout(
-    xaxis=dict(linecolor='white'),
-    yaxis=dict(linecolor='white'),
-    bargap=0.05,
-    bargroupgap=0.1,
-    plot_bgcolor='rgb(51, 51, 51)',
-    paper_bgcolor='rgb(51, 51, 51)',
-    font=dict(color='white')
-)
+    # Create figure
+    fig = go.Figure(data=[histogram], layout=layout)
 
-# Show plot
+    # Update color for dark theme
+    fig.update_layout(
+        xaxis=dict(linecolor=font_color),
+        yaxis=dict(linecolor=font_color),
+        bargap=0.05,
+        bargroupgap=0.1,
+        plot_bgcolor=plot_bgcolor,
+        paper_bgcolor=paper_bgcolor,
+        font=dict(color=font_color)
+    )
 
-fig.show()
+    # Show plot
+    fig.show()
+
+# Example usage:
+# Assuming df['energy'] contains your energy data
+plot_histogram(df['energy'])
+
 
 
 import numpy as np
