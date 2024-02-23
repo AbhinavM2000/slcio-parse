@@ -4,28 +4,26 @@ import pandas as pd
 import plotly.graph_objs as go
 import plotly.graph_objects as go
 import numpy as np
-import plotly.graph_objs as go
-
-
-def process_line(line):
-    # Replace special characters with ','
-    line = re.sub(r'[^\w\s.,+-]', ',', line)
-    # Remove unnecessary spaces
-    line = ' '.join(line.split())
-    return line
-
-def remove_extra_commas(lines):
-    cleaned_lines = []
-    for line in lines:
-        if line[:2] == '-,':
-            line = line[2:]
-        parts = line.split(',')
-        cleaned_parts = [part.strip() for part in parts if part.strip()]
-        cleaned_line = ','.join(cleaned_parts)
-        cleaned_lines.append(cleaned_line)
-    return cleaned_lines
+import re
+import pandas as pd
 
 def process_file(input_file, output_file):
+    def process_line(line):
+        line = re.sub(r'[^\w\s.,+-]', ',', line)
+        line = ' '.join(line.split())
+        return line
+
+    def remove_extra_commas(lines):
+        cleaned_lines = []
+        for line in lines:
+            if line[:2] == '-,':
+                line = line[2:]
+            parts = line.split(',')
+            cleaned_parts = [part.strip() for part in parts if part.strip()]
+            cleaned_line = ','.join(cleaned_parts)
+            cleaned_lines.append(cleaned_line)
+        return cleaned_lines
+
     with open(input_file, 'r') as f:
         lines = f.readlines()
 
@@ -36,165 +34,154 @@ def process_file(input_file, output_file):
         for line in cleaned_lines:
             f.write(line + '\n')
 
-# Replace 'data.txt' and 'final_result.txt' with your input and output file paths
-process_file('data.txt', 'final_result.txt')
+    # Print number of lines in final_result.txt
+    with open(output_file, 'r') as f:
+        lines = f.readlines()
+        print(len(lines))
 
-#print number of lines in final_result.txt
-with open('final_result.txt', 'r') as f:
-    lines = f.readlines()
-    print(len(lines))
+    # Open final_result.txt and if any line ends with +n, where n greater than 3, calculate sum of all such n = count. Then print % = count / (sum of all n including those less than 3)
+    with open(output_file, 'r') as f:
+        lines = f.readlines()
 
-import re
-#open final_result.txt and if any line ends with +n, where n greater than 3, calculate sum of all such n = count. Then print % = count / (sum of all n including those less than 3)
-with open('final_result.txt', 'r') as f:
-    lines = f.readlines()
-
-sum_n = 0
-count = 0
-for line in lines:
-    match = re.search(r'\+(\d+)$', line.strip()) # Check if the line ends with '+n'
-    if match:
-        n = int(match.group(1))
-        if n > 3:  # Ensure n is greater than 3
-            sum_n += n
-            count += 1
-
-total_sum = sum_n
-for line in lines:
-    match = re.search(r'\+(\d+)$', line.strip()) # Check if the line ends with '+n'
-    if match:
-        n = int(match.group(1))
-        total_sum += n
-
-percentage = (count / total_sum) * 100
-print(f"{percentage:.2f}% of points(+4 and above decays) excluded due to difficulties in parsing.")
-
-with open('final_result.txt', 'r') as f:
-    lines = f.readlines()
-
-with open('final_result.txt', 'w') as f:
-    skip_next = 0
+    sum_n = 0
+    count = 0
     for line in lines:
-        if skip_next > 0:
-            skip_next -= 1
-            continue
-        match = re.search(r'\+(\d+)$', line.strip()) # Check if the line ends with '+n'
+        match = re.search(r'\+(\d+)$', line.strip())  # Check if the line ends with '+n'
         if match:
             n = int(match.group(1))
-            if n > 3:  # Ensure n is greater than 2
-                skip_next = n
-                continue
-        f.write(line)
+            if n > 3:  # Ensure n is greater than 3
+                sum_n += n
+                count += 1
 
-
-
-
-#open final_result.txt and if any line ends with +2, duplicate that line below it
-with open('final_result.txt', 'r') as f:
-    lines = f.readlines()
-
-with open('final_result.txt', 'w') as f:
+    total_sum = sum_n
     for line in lines:
-        f.write(line)
-        if line.strip().endswith('+2'):
-            f.write(line)
-#print number of lines in final_result.txt
-with open('final_result.txt', 'r') as f:
-    lines = f.readlines()
-    print(len(lines))
-#open final_result.txt, if any line repeats more than once, swap its position with the line below it
+        match = re.search(r'\+(\d+)$', line.strip())  # Check if the line ends with '+n'
+        if match:
+            n = int(match.group(1))
+            total_sum += n
 
-def swap_repeated_lines(file_path):
-    # Read the contents of the file
-    with open(file_path, 'r') as file:
+    percentage = (count / total_sum) * 100
+    print(f"{percentage:.2f}% of points(+4 and above decays) excluded due to difficulties in parsing.")
+
+    with open(output_file, 'r') as f:
+        lines = f.readlines()
+
+    with open(output_file, 'w') as f:
+        skip_next = 0
+        for line in lines:
+            if skip_next > 0:
+                skip_next -= 1
+                continue
+            match = re.search(r'\+(\d+)$', line.strip())  # Check if the line ends with '+n'
+            if match:
+                n = int(match.group(1))
+                if n > 3:  # Ensure n is greater than 2
+                    skip_next = n
+                    continue
+            f.write(line)
+
+    # Open final_result.txt and if any line ends with +2, duplicate that line below it
+    with open(output_file, 'r') as f:
+        lines = f.readlines()
+
+    with open(output_file, 'w') as f:
+        for line in lines:
+            f.write(line)
+            if line.strip().endswith('+2'):
+                f.write(line)
+
+    # Print number of lines in final_result.txt
+    with open(output_file, 'r') as f:
+        lines = f.readlines()
+        print(len(lines))
+
+    # Open final_result.txt, if any line repeats more than once, swap its position with the line below it
+    def swap_repeated_lines(file_path):
+        with open(file_path, 'r') as file:
+            lines = file.readlines()
+
+        prev_line = None
+        for i in range(len(lines)):
+            if prev_line == lines[i]:
+                lines[i], lines[i + 1] = lines[i + 1], lines[i]
+                prev_line = None
+            else:
+                prev_line = lines[i]
+
+        with open(file_path, 'w') as file:
+            file.writelines(lines)
+
+    # Usage example
+    file_path = output_file
+    swap_repeated_lines(file_path)
+
+    # Print number of lines in final_result.txt
+    with open(output_file, 'r') as f:
+        lines = f.readlines()
+        print(len(lines))
+
+    # Duplicate lines ending with +3 two times below them
+    with open(output_file, 'r') as f:
+        lines = f.readlines()
+
+    with open(output_file + "_modified.txt", 'w') as f:
+        for line in lines:
+            f.write(line)
+            if line.strip().endswith('+3'):
+                f.write(line)
+                f.write(line)
+
+    # Swap lines i+1 and i+4 if line i ends with +3 and start scanning from i+6
+    with open(output_file + "_modified.txt", 'r') as f:
+        lines = f.readlines()
+
+    with open(output_file + "_final.txt", 'w') as f:
+        skip_next = 0
+        for i in range(len(lines)):
+            if skip_next > 0:
+                skip_next -= 1
+                continue
+            f.write(lines[i])
+            if lines[i].strip().endswith('+3'):
+                if i + 4 < len(lines):  # Make sure there are enough lines to swap
+                    lines[i + 1], lines[i + 4] = lines[i + 4], lines[i + 1]
+                    skip_next = 5
+                else:
+                    f.write("Error: Not enough lines to perform swap.\n")
+
+    with open(output_file, "r") as file:
         lines = file.readlines()
 
-    # Iterate over the lines
-    prev_line = None
-    for i in range(len(lines)):
-        if prev_line == lines[i]:
-            # Swap current line with the line below it
-            lines[i], lines[i+1] = lines[i+1], lines[i]
-            prev_line = None  # Reset prev_line after swapping
-        else:
-            prev_line = lines[i]
+    combined_lines = []
+    for i in range(0, len(lines), 2):
+        combined_lines.append(lines[i].strip() + "," + lines[i + 1].strip())
 
-    # Write the modified lines back to the file
-    with open(file_path, 'w') as file:
-        file.writelines(lines)
+    with open(output_file, "w") as file:
+        file.write("\n".join(combined_lines))
 
-# Usage example
-file_path = 'final_result.txt'
-swap_repeated_lines(file_path)
-#print number of lines in final_result.txt
-with open('final_result.txt', 'r') as f:
-    lines = f.readlines()
-    print(len(lines))
+    # Print number of lines in final_result.txt
+    with open(output_file, 'r') as f:
+        lines = f.readlines()
+        print(len(lines))
 
+    # Open final_result.txt and load into a pandas dataframe
+    df = pd.read_csv(output_file, header=None)
 
-# Duplicate lines ending with +3 two times below them
-with open('final_result.txt', 'r') as f:
-    lines = f.readlines()
+    # Name the columns: id, cellId0, cellId1, energy, position (x,y,z), nMCParticles MC contribution: prim. PDG, energy_part, time, length, sec. PDG and stepPosition (x,y,z)
+    df.columns = ['id', 'cellId0', 'cellId1', 'energy', 'position x', 'position y', 'position z', 'nMCParticles',
+                  'mc contri prim. PDG', 'energy_part', 'time', 'length', 'sec_PDG', 'stepPosition x',
+                  'stepPosition y', 'stepPosition z']
 
-with open('final_result_modified.txt', 'w') as f:
-    for line in lines:
-        f.write(line)
-        if line.strip().endswith('+3'):
-            f.write(line)
-            f.write(line)
+    # Convert all the columns to the numeric type
+    df = df.apply(pd.to_numeric, errors='coerce')
 
-# Swap lines i+1 and i+4 if line i ends with +3 and start scanning from i+6
-with open('final_result_modified.txt', 'r') as f:
-    lines = f.readlines()
+    return df
 
-with open('final_result_final.txt', 'w') as f:
-    skip_next = 0
-    for i in range(len(lines)):
-        if skip_next > 0:
-            skip_next -= 1
-            continue
-        f.write(lines[i])
-        if lines[i].strip().endswith('+3'):
-            if i + 4 < len(lines):  # Make sure there are enough lines to swap
-                lines[i+1], lines[i+4] = lines[i+4], lines[i+1]
-                skip_next = 5
-            else:
-                f.write("Error: Not enough lines to perform swap.\n")
-
-
-
-with open("final_result.txt", "r") as file:
-    lines = file.readlines()
-
-combined_lines = []
-for i in range(0, len(lines), 2):
-    combined_lines.append(lines[i].strip() + "," + lines[i+1].strip())
-
-with open("final_result.txt", "w") as file:
-    file.write("\n".join(combined_lines))
-
-#print number of lines in final_result.txt
-with open('final_result.txt', 'r') as f:
-    lines = f.readlines()
-    print(len(lines))
-#open final_result.txt and load into a pandas dataframe
-import pandas as pd
-
-df = pd.read_csv('final_result.txt', header=None)
-
- # name the coloumns: id  , cellId0 ,cellId1  , energy      ,   position (x,y,z)        ,  nMCParticles MC contribution: prim. PDG,   energy_part  ,   time,    length  , sec. PDG and stepPosition (x,y,z)
-df.columns = ['id', 'cellId0', 'cellId1', 'energy', 'position x','position y','position z', 'nMCParticles', 'mc contri prim. PDG', 'energy_part', 'time', 'length', 'sec_PDG', 'stepPosition x', 'stepPosition y', 'stepPosition z']
-
-#convert all the columns to the numeric type
-df = df.apply(pd.to_numeric, errors='coerce')
-#plot a histogram of the energy column
-import plotly.graph_objs as go
+# Example usage:
+# Assuming 'data.txt' is the input file and 'final_result.txt' is the output file
+df = process_file('data.txt', 'final_result.txt')
 
 # Create histogram trace
-import plotly.graph_objects as go
-
-import plotly.graph_objs as go
-
 def plot_histogram(data, x_label='Energy', y_label='Count (log scale)', nbins=20, color='royalblue', title='Energy Distribution', plot_bgcolor='rgb(51, 51, 51)', paper_bgcolor='rgb(51, 51, 51)', font_color='white'):
     # Create histogram trace
     histogram = go.Histogram(
@@ -237,10 +224,6 @@ def plot_histogram(data, x_label='Energy', y_label='Count (log scale)', nbins=20
 # Assuming df['energy'] contains your energy data
 plot_histogram(df['energy'])
 
-
-
-import numpy as np
-import plotly.graph_objs as go
 
 def plot_unrolled_and_reconstructed(df):
     # Extract data
@@ -354,7 +337,6 @@ def plot_unrolled_and_reconstructed(df):
 # Example usage
 # Assuming df is your DataFrame
 #plot_unrolled_and_reconstructed(df)
-
 
 def plot_3d_heatmap_at_angle(df, column_name, angle):
     # Generate data for cylinder surface
