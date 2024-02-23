@@ -179,7 +179,7 @@ def process_file(input_file, output_file):
 
 # Example usage:
 # Assuming 'data.txt' is the input file and 'final_result.txt' is the output file
-df = process_file('data.txt', 'final_result.txt')
+
 
 # Create histogram trace
 def plot_histogram(data, x_label='Energy', y_label='Count (log scale)', nbins=20, color='royalblue', title='Energy Distribution', plot_bgcolor='rgb(51, 51, 51)', paper_bgcolor='rgb(51, 51, 51)', font_color='white'):
@@ -222,7 +222,7 @@ def plot_histogram(data, x_label='Energy', y_label='Count (log scale)', nbins=20
 
 # Example usage:
 # Assuming df['energy'] contains your energy data
-plot_histogram(df['energy'])
+#plot_histogram(df['energy'])
 
 
 def plot_unrolled_and_reconstructed(df):
@@ -436,5 +436,14 @@ def plot_3d_heatmap_at_angle(df, column_name, angle):
 
 # Example usage:
 # Assuming df is your DataFrame and 'time' is the column you want to use for heatmap
+#plot_3d_heatmap_at_angle(df, 'time', angle=45)
+#plot_3d_heatmap_at_angle(df, 'time', angle=50)
+
+##############---TESTING---##############
+
+df = process_file('data.txt', 'final_result.txt')
+
+plot_histogram(df['energy'])
+#plot_unrolled_and_reconstructed(df)
 plot_3d_heatmap_at_angle(df, 'time', angle=45)
 plot_3d_heatmap_at_angle(df, 'time', angle=50)
