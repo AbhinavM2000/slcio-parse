@@ -60,8 +60,13 @@ def process_file(input_file, output_file):
             n = int(match.group(1))
             total_sum += n
 
-    percentage = (count / total_sum) * 100
-    print(f"{percentage:.2f}% of points(+4 and above decays) excluded due to difficulties in parsing.")
+    
+    #avoid division by zero
+    if total_sum == 0:
+        print("No points excluded.")
+    else:
+        percentage = (count / total_sum) * 100
+        print(f"{percentage:.2f}% of points(+4 and above decays) excluded due to difficulties in parsing.")
 
     with open(output_file, 'r') as f:
         lines = f.readlines()
@@ -338,7 +343,11 @@ def plot_unrolled_and_reconstructed(df):
 # Assuming df is your DataFrame
 #plot_unrolled_and_reconstructed(df)
 
-def plot_3d_heatmap_at_angle(df, column_name, angle):
+import plotly.graph_objects as go
+import numpy as np
+import os
+
+def plot_3d_heatmap_at_angle(df, column_name, angle, save_image=False):
     # Generate data for cylinder surface
     def cylinder(x, y, z, radius, height):
         u = np.linspace(0, 2 * np.pi, 100)
@@ -348,7 +357,7 @@ def plot_3d_heatmap_at_angle(df, column_name, angle):
         Y = y + (radius * np.sin(U))
         Z = z + V
         return X, Y, Z
-    
+
     # Create scatter plot trace
     scatter = go.Scatter3d(
         x=df['position x'],
@@ -364,40 +373,40 @@ def plot_3d_heatmap_at_angle(df, column_name, angle):
             opacity=0.8
         )
     )
-    
+
     # Generate cylinder surface
     cylinder_x, cylinder_y, cylinder_z = cylinder(x=0, y=0, z=-2000, radius=1500, height=4000)
-    
+
     # Create cylindrical outline trace
-    dark_color = 'rgb(0, 0, 0)'  
-    light_color = 'rgb(255, 255, 255)'  
+    dark_color = 'rgb(0, 0, 0)'
+    light_color = 'rgb(255, 255, 255)'
     light_color2='rgb(45, 45, 45)'
-    
+
     colorscale = [
-        [0, light_color],  
-        [0.5, dark_color],  
-        [1, light_color]  
+        [0, light_color],
+        [0.5, dark_color],
+        [1, light_color]
     ]
-    
+
     cylinder_outline = go.Surface(
-        x=cylinder_x, 
-        y=cylinder_y, 
-        z=cylinder_z, 
-        opacity=0.1, 
-        showscale=False, 
+        x=cylinder_x,
+        y=cylinder_y,
+        z=cylinder_z,
+        opacity=0.1,
+        showscale=False,
         colorscale=colorscale
     )
-    
+
     n_points = 50
     theta = np.linspace(0, 2*np.pi, n_points)
-    x = 1500 * np.cos(theta)  
-    y = 1500 * np.sin(theta)  
-    z = np.linspace(-2000, 2000, n_points)  
-    
+    x = 1500 * np.cos(theta)
+    y = 1500 * np.sin(theta)
+    z = np.linspace(-2000, 2000, n_points)
+
     lines_circumference = []
     for i in range(n_points):
         lines_circumference.append(go.Scatter3d(x=[x[i], x[i]], y=[y[i], y[i]], z=[-2000, 2000], mode='lines', line=dict(color=light_color2)))
-    
+
     # Create layout
     layout = go.Layout(
         title=f'ECalBarrelCollection Position vs {column_name} (Event ID:000/999) ORIGINAL',
@@ -416,34 +425,50 @@ def plot_3d_heatmap_at_angle(df, column_name, angle):
         paper_bgcolor='black',
         font=dict(color='white')
     )
-    
+
     # Create figure
     fig = go.Figure(layout=layout)
-    
+
     # Update camera viewpoint for rotation and zoom
     eye_x = np.cos(np.deg2rad(angle))
     eye_z = np.sin(np.deg2rad(angle))
     fig.update_layout(scene_camera=dict(eye=dict(x=0.5*eye_x, y=0.5, z=1.5)))  # Adjusted for y-axis rotation and zoom
-    
+
     # Append scatter plot, cylinder, and lines to figure
     fig.add_trace(scatter)
     fig.add_trace(cylinder_outline)
     fig.add_traces(lines_circumference)
     fig.update_traces(showlegend=False)
-    
+
+    # Save plot as image if save_image is True
+    if save_image:
+        if not os.path.exists("images"):
+            os.makedirs("images")
+        fig.write_image(f"images/plot_{column_name}_{angle}.png", width=1200, height=800, scale=3)
+
     # Show plot
-    fig.show()
+    #fig.show()
 
 # Example usage:
 # Assuming df is your DataFrame and 'time' is the column you want to use for heatmap
-#plot_3d_heatmap_at_angle(df, 'time', angle=45)
-#plot_3d_heatmap_at_angle(df, 'time', angle=50)
 
-##############---TESTING---##############
+import argparse
+def main():
+    parser = argparse.ArgumentParser(description='Process a file and plot 3D heatmap at a specified angle.')
+    parser.add_argument('input_file', help='Path to the input text file')
+    parser.add_argument('output_file', help='Path to the output text file')
+    parser.add_argument('column_name', help='Name of the column to be plotted')
+    parser.add_argument('--angle', type=float, default=0, help='Angle for the 3D plot (default: 45)')
+    parser.add_argument('--save_image', action='store_true', help='Save the plot as an image')
+    
+    args = parser.parse_args()
+    
+    # Process file
+    df = process_file(args.input_file, args.output_file)
+    
+    # Plot 3D heatmap
+    plot_3d_heatmap_at_angle(df, args.column_name, args.angle, save_image=args.save_image)
+    #os.remove(args.output_file)
 
-df = process_file('data.txt', 'final_result.txt')
-
-plot_histogram(df['energy'])
-#plot_unrolled_and_reconstructed(df)
-plot_3d_heatmap_at_angle(df, 'time', angle=45)
-plot_3d_heatmap_at_angle(df, 'time', angle=50)
+if __name__ == "__main__":
+    main()
